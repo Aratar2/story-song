@@ -84,10 +84,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
             $response = curl_exec($ch);
             $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
 
-            if ($response === false || $httpStatus >= 400) {
+            $responseData = null;
+            if ($response !== false) {
+                $decoded = json_decode($response, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $responseData = $decoded;
+                }
+            }
+
+            $telegramOk = is_array($responseData) && !empty($responseData['ok']);
+
+            if ($response === false || $curlError !== '' || $httpStatus >= 400 || !$telegramOk) {
                 $errorMessage = 'Не удалось отправить сообщение в Telegram. Попробуйте ещё раз или свяжитесь напрямую.';
+
+                if (is_array($responseData) && !empty($responseData['description'])) {
+                    $errorMessage .= ' (Ошибка Telegram: ' . $responseData['description'] . ')';
+                }
             } else {
                 $successMessage = 'Спасибо! Мы получили вашу историю и свяжемся в ближайшее время.';
                 $formData = array_fill_keys(array_keys($formData), '');
