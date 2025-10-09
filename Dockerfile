@@ -7,7 +7,7 @@ RUN apk add --no-cache nginx supervisor \
 WORKDIR /var/www/html
 
 COPY . /var/www/html
-RUN rm -rf docker fly Dockerfile docker-compose.yml fly.toml README.md
+RUN rm -rf docker fly Dockerfile docker-compose.yml fly.toml README.md .fly
 
 # Remove default nginx config and replace with Fly.io specific one
 RUN rm -f /etc/nginx/http.d/default.conf
