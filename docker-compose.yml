@@ -6,6 +6,8 @@ services:
     volumes:
       - ./:/var/www/html
     working_dir: /var/www/html
+    env_file:
+      - .env
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
@@ -20,5 +22,7 @@ services:
       - "443:443"
     volumes:
       - ./:/var/www/html
+    env_file:
+      - .env
     environment:
       SSL_CERT_COMMON_NAME: ${SSL_CERT_COMMON_NAME:-localhost}
