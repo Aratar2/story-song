@@ -1,0 +1,24 @@
+# Update the "app" value with your Fly.io application name
+app = "story-song"
+
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Uncomment to override defaults, e.g. timezone
+  # TZ = "Europe/Moscow"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
