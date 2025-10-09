@@ -16,3 +16,10 @@ app = "story-song"
     type = "requests"
     hard_limit = 25
     soft_limit = 20
+
+[fly_launch]
+  # Update both "app_name" and "org" to match your Fly.io project.
+  app_name = "story-song"
+  org = "personal"
+  # The GitHub build pipeline expects the Machines platform.
+  platform_version = "machines"
