@@ -425,8 +425,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="footer__contacts">
             <span>Напишите мне:</span>
-            <a href="https://t.me/your_profile" target="_blank" rel="noopener">Telegram</a>
-            <a href="https://wa.me/70000000000" target="_blank" rel="noopener">WhatsApp</a>
+            <a href="https://t.me/airat_dev" target="_blank" rel="noopener">Telegram @airat_dev</a>
+            <a href="https://wa.me/79274665595" target="_blank" rel="noopener">WhatsApp +7 927 466 5595</a>
         </div>
     </div>
     <p class="footer__note">© <?php echo date('Y'); ?> Песни на заказ. Все права защищены.</p>
