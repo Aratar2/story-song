@@ -488,6 +488,7 @@ a:focus {
 }
 
 .story-card__media audio {
+    display: block;
     width: 100%;
 }
 
