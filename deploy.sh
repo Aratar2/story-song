@@ -24,13 +24,22 @@ check_certificate() {
 }
 
 ensure_ssl_support_files() {
-  docker compose run --rm --entrypoint /bin/sh certbot -c "\
-    set -eu\n\
-    OPTIONS_SRC=\$(python -c \"import os, certbot_nginx._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'options-ssl-nginx.conf'))\")\n\
-    DHPARAM_SRC=\$(python -c \"import os, certbot._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'assets', 'ssl-dhparams.pem'))\")\n\
-    [ -f /etc/letsencrypt/options-ssl-nginx.conf ] || cp \"\$OPTIONS_SRC\" /etc/letsencrypt/options-ssl-nginx.conf\n\
-    [ -f /etc/letsencrypt/ssl-dhparams.pem ] || cp \"\$DHPARAM_SRC\" /etc/letsencrypt/ssl-dhparams.pem\n\
-  "
+  local options_file="nginx/ssl/options-ssl-nginx.conf"
+  local dhparams_file="nginx/ssl/ssl-dhparams.pem"
+
+  if [[ ! -f "$options_file" || ! -f "$dhparams_file" ]]; then
+    echo "[deploy] TLS snippets missing. Ensure $options_file and $dhparams_file exist." >&2
+    exit 1
+  fi
+
+  docker compose run --rm \
+    --volume "$(pwd)/nginx/ssl:/tls:ro" \
+    --entrypoint /bin/sh certbot -c "\
+      set -eu\n\
+      mkdir -p /etc/letsencrypt\n\
+      [ -f /etc/letsencrypt/options-ssl-nginx.conf ] || cp /tls/options-ssl-nginx.conf /etc/letsencrypt/options-ssl-nginx.conf\n\
+      [ -f /etc/letsencrypt/ssl-dhparams.pem ] || cp /tls/ssl-dhparams.pem /etc/letsencrypt/ssl-dhparams.pem\n\
+    "
 }
 
 if check_certificate; then
