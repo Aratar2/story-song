@@ -23,6 +23,7 @@ services:
     volumes:
       - ./nginx/templates:/etc/nginx/templates:ro
       - ./nginx/entrypoint.sh:/docker-entrypoint-cert-reload.sh:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./:/var/www/html:ro
       - certbot_certs:/etc/letsencrypt
       - certbot_challenges:/var/www/certbot
