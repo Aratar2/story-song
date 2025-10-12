@@ -23,6 +23,16 @@ check_certificate() {
   docker compose run --rm --entrypoint /bin/sh certbot -c "test -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
 }
 
+ensure_ssl_support_files() {
+  docker compose run --rm --entrypoint /bin/sh certbot -c "\
+    set -eu\n\
+    OPTIONS_SRC=\$(python -c \"import os, certbot_nginx._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'options-ssl-nginx.conf'))\")\n\
+    DHPARAM_SRC=\$(python -c \"import os, certbot._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'assets', 'ssl-dhparams.pem'))\")\n\
+    [ -f /etc/letsencrypt/options-ssl-nginx.conf ] || cp \"\$OPTIONS_SRC\" /etc/letsencrypt/options-ssl-nginx.conf\n\
+    [ -f /etc/letsencrypt/ssl-dhparams.pem ] || cp \"\$DHPARAM_SRC\" /etc/letsencrypt/ssl-dhparams.pem\n\
+  "
+}
+
 if check_certificate; then
   echo "[deploy] Existing certificate found for ${DOMAIN}. Skipping issuance."
 else
@@ -35,6 +45,9 @@ else
     --no-eff-email \
     --non-interactive
 fi
+
+echo "[deploy] Ensuring TLS configuration snippets are available..."
+ensure_ssl_support_files
 
 echo "[deploy] Updating nginx configuration and reloading..."
 docker compose exec nginx /bin/sh -c "envsubst '\$DOMAIN' < /etc/nginx/templates/default.conf.ssl.template > /etc/nginx/conf.d/default.conf && nginx -s reload"
