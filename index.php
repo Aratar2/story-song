@@ -396,7 +396,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <article class="faq__item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <h3 itemprop="name">Сколько времени занимает создание песни?</h3>
                     <div class="faq__content" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <p itemprop="text">Первое демо отправляю в течение 1–3 дней после того, как получу историю. время может увеличиться.</p>
+                        <p itemprop="text">Первое демо отправляю в течение 1–3 дней после того, как получу историю. Если будут запрошены правки, то время может увеличиться.</p>
                     </div>
                 </article>
                 <article class="faq__item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
