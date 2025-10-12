@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $payload = [
                 'chat_id' => $chatId,
                 'text' => implode("\n", $messageLines),
-                'parse_mode' => 'HTML',
+                'disable_web_page_preview' => true,
             ];
 
             $ch = curl_init('https://api.telegram.org/bot' . $telegramToken . '/sendMessage');
@@ -84,17 +84,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
             $response = curl_exec($ch);
             $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if ($response === false) {
+                error_log('Не удалось выполнить запрос к Telegram: ' . curl_error($ch));
+            }
+
             curl_close($ch);
 
-            if ($response === false || $httpStatus >= 400) {
-                $errorMessage = 'Не удалось отправить сообщение в Telegram. Попробуйте ещё раз или свяжитесь напрямую.';
+            $responseData = json_decode($response ?? '', true);
+            $telegramOk = is_array($responseData) && ($responseData['ok'] ?? false) === true;
+
+            if ($response === false || $httpStatus >= 400 || !$telegramOk) {
+                if (isset($responseData['description'])) {
+                    error_log('Ошибка Telegram API: ' . $responseData['description']);
+                }
+
+                $errorMessage = 'Не получилось отправить заявку. Пожалуйста, напишите нам напрямую в Telegram или WhatsApp.';
             } else {
                 $successMessage = 'Спасибо! Мы получили вашу историю и свяжемся в ближайшее время.';
                 $formData = array_fill_keys(array_keys($formData), '');
             }
         } else {
-            $successMessage = 'Форма заполнена. Добавьте токен и чат в переменные окружения, чтобы отправлять заявки в Telegram.';
-            $formData = array_fill_keys(array_keys($formData), '');
+            error_log('TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы.');
+            $errorMessage = 'Не получилось отправить заявку. Пожалуйста, напишите нам напрямую в Telegram или WhatsApp.';
         }
     }
 }
