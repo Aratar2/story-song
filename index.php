@@ -235,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="offer__details" aria-label="Ключевые условия заказа песни">
                 <div class="offer__tag">2000 ₽</div>
                 <div class="offer__tag">1–3 дня до первого демо</div>
-                <div class="offer__note">Оплата после подтверждения концепции. Можно подарить сертификат заранее.</div>
+                <div class="offer__note">Оплата после подтверждения концепции.</div>
             </div>
         </div>
     </section>
@@ -310,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <ul>
                 <li>Текст, написанный вашим языком и любимыми обращениями.</li>
                 <li>Музыка в стиле, который нравится вам и адресату.</li>
-                <li>Готовый мастер и текст для самостоятельного исполнения.</li>
+                <li>Готовая песня и текст для самостоятельного исполнения.</li>
                 <li>Бережное отношение к личным воспоминаниям и материалам.</li>
             </ul>
         </div>
@@ -402,7 +402,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <article class="faq__item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <h3 itemprop="name">Можно ли внести правки после демо?</h3>
                     <div class="faq__content" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <p itemprop="text">Да. Выслушаю комментарии к тексту и музыке, внесу до двух раундов корректировок, чтобы песня звучала так, как вы представляете.</p>
+                        <p itemprop="text">Послушаю ваши идеи и комментарии к тексту и музыке, и при необходимости внесу до двух раундов правок — чтобы песня полностью передавала то, что вы чувствуете и хотите выразить.</p>
                     </div>
                 </article>
                 <article class="faq__item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
@@ -508,7 +508,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "name": "Можно ли внести правки после демо?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Да, учитываю ваши пожелания и вношу до двух раундов правок по тексту и музыке, чтобы песня звучала так, как вы задумали."
+                "text": "Послушаю ваши идеи и комментарии к тексту и музыке, и при необходимости внесу до двух раундов правок — чтобы песня полностью передавала то, что вы чувствуете и хотите выразить."
             }
         },
         {
