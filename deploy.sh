@@ -24,7 +24,7 @@ check_certificate() {
 }
 
 ensure_ssl_support_files() {
-  docker compose run --rm certbot /bin/sh -c "\
+  docker compose run --rm --entrypoint /bin/sh certbot -c "\
     set -eu\n\
     OPTIONS_SRC=\$(python -c \"import os, certbot_nginx._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'options-ssl-nginx.conf'))\")\n\
     DHPARAM_SRC=\$(python -c \"import os, certbot._internal as m; print(os.path.join(os.path.dirname(m.__file__), 'assets', 'ssl-dhparams.pem'))\")\n\
