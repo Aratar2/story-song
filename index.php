@@ -243,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <section class="section" id="stories">
         <div class="container">
             <h2>Примеры историй и песен</h2>
-            <p class="section__lead">Каждый проект — это маленькая семейная хроника. Добавляйте свои ролики с YouTube: достаточно заменить идентификатор видео в списке.</p>
+            <p class="section__lead">Каждый проект — это маленькая семейная хроника.</p>
             <div class="story-grid">
                 <?php foreach ($stories as $story): ?>
                 <article class="story-card">
@@ -431,12 +431,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <p class="footer__note">© <?php echo date('Y'); ?> Песни на заказ. Все права защищены.</p>
 </footer>
-<div class="floating-cta" role="complementary">
+<div class="floating-cta" role="complementary" aria-label="Быстрая заявка на песню">
+    <button class="floating-cta__close" type="button" aria-label="Скрыть предложение">×</button>
     <div class="floating-cta__content">
         <span>Есть история? Сделаю песню за 1–3 дня.</span>
         <a class="button button--primary" href="#request">Оставить заявку</a>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var floatingCta = document.querySelector('.floating-cta');
+        if (!floatingCta) {
+            return;
+        }
+
+        var dismissed = false;
+        try {
+            dismissed = window.sessionStorage.getItem('floatingCtaDismissed') === '1';
+        } catch (error) {
+            dismissed = false;
+        }
+
+        if (dismissed) {
+            floatingCta.setAttribute('hidden', 'hidden');
+            return;
+        }
+
+        var closeButton = floatingCta.querySelector('.floating-cta__close');
+        if (closeButton) {
+            closeButton.addEventListener('click', function () {
+                floatingCta.setAttribute('hidden', 'hidden');
+                try {
+                    window.sessionStorage.setItem('floatingCtaDismissed', '1');
+                } catch (error) {
+                    /* ignore */
+                }
+            });
+        }
+    });
+</script>
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
