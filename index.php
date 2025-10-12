@@ -13,25 +13,25 @@ $stories = [
     [
         'title' => 'История любви Анны и Сергея',
         'description' => 'Песня к серебряной свадьбе, где каждая строфа напоминает о первой встрече и долгой дороге вместе.',
-        'youtubeId' => 'n1urLcoG0Jg',
+        'audioFile' => 'assets/audio/anna-sergey.mp3',
         'tags' => ['юбилей', 'любовь'],
     ],
     [
         'title' => 'Музыкальный подарок для старшего брата',
         'description' => 'Семейное видео с архивными фотографиями и песней, которая стала теплым сюрпризом на 50-летие.',
-        'youtubeId' => 'w5tWYmIOWGk',
+        'audioFile' => 'assets/audio/big-brother.mp3',
         'tags' => ['семья', 'юбилей'],
     ],
     [
         'title' => 'Песня-история для подруги детства',
         'description' => 'Лирическая композиция о дружбе через десятилетия — с юмором и воспоминаниями о школьных годах.',
-        'youtubeId' => 'J---aiyznGQ',
+        'audioFile' => 'assets/audio/best-friend.mp3',
         'tags' => ['дружба', 'ностальгия'],
     ],
     [
         'title' => 'Серенада для мамы',
         'description' => 'Трогательная песня для маминого дня рождения: дети собрали семейные истории и пожелания.',
-        'youtubeId' => 'L_jWHffIx5E',
+        'audioFile' => 'assets/audio/mom-serenade.mp3',
         'tags' => ['семья', 'праздник'],
     ],
 ];
@@ -248,7 +248,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php foreach ($stories as $story): ?>
                 <article class="story-card">
                     <div class="story-card__media">
-                        <iframe src="https://www.youtube.com/embed/<?php echo htmlspecialchars($story['youtubeId'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" title="<?php echo htmlspecialchars($story['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                        <?php if (isset($story['audioFile']) && is_file($story['audioFile'])): ?>
+                        <?php
+                        $audioPath = $story['audioFile'];
+                        $extension = strtolower(pathinfo($audioPath, PATHINFO_EXTENSION));
+                        $mimeType = 'audio/mpeg';
+
+                        if ($extension === 'wav') {
+                            $mimeType = 'audio/wav';
+                        } elseif ($extension === 'ogg') {
+                            $mimeType = 'audio/ogg';
+                        }
+                        ?>
+                        <audio controls preload="none">
+                            <source src="<?php echo htmlspecialchars($audioPath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" type="<?php echo htmlspecialchars($mimeType, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" />
+                            Ваш браузер не поддерживает воспроизведение аудио.
+                        </audio>
+                        <?php else: ?>
+                        <div class="story-card__placeholder">
+                            <p>Добавьте файл <code><?php echo htmlspecialchars($story['audioFile'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></code> в папку <code>assets/audio</code>, и здесь появится плеер.</p>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="story-card__body">
                         <h3><?php echo htmlspecialchars($story['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h3>

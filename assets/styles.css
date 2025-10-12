@@ -478,8 +478,29 @@ a:focus {
 }
 
 .story-card__media {
-    aspect-ratio: 16 / 9;
-    background: #000;
+    background: rgba(33, 212, 253, 0.08);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.story-card__media audio {
+    width: 100%;
+}
+
+.story-card__placeholder {
+    text-align: center;
+    font-size: 0.92rem;
+    color: var(--color-text-muted);
+}
+
+.story-card__placeholder code {
+    background: rgba(21, 17, 31, 0.06);
+    padding: 2px 6px;
+    border-radius: 6px;
 }
 
 .story-card__body {
