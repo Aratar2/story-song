@@ -1,5 +1,13 @@
 <?php
-$successMessage = '';
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+$successMessage = $_SESSION['flash_success'] ?? '';
+if ($successMessage !== '') {
+    unset($_SESSION['flash_success']);
+}
+
 $errorMessage = '';
 $formData = [
     'name' => '',
@@ -102,7 +110,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errorMessage = 'Не получилось отправить заявку. Пожалуйста, напишите мне напрямую в Telegram или WhatsApp.';
             } else {
                 $successMessage = 'Спасибо! История получена — я свяжусь в ближайшее время.';
+                $_SESSION['flash_success'] = $successMessage;
                 $formData = array_fill_keys(array_keys($formData), '');
+                session_write_close();
+                $redirectUrl = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+                header('Location: ' . $redirectUrl);
+                exit;
             }
         } else {
             error_log('TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы.');
