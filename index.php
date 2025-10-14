@@ -144,6 +144,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="twitter:description" content="Индивидуальные песни-сюрпризы для родных и друзей. Личное сопровождение и первые демо в течение 1–3 дней." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80" />
     <link rel="stylesheet" href="assets/styles.css" />
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s);
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1855203302046632');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1855203302046632&amp;ev=PageView&amp;noscript=1" alt="" /></noscript>
+    <!-- End Meta Pixel Code -->
 </head>
 <body>
 <header class="site-header" id="top">
