@@ -38,6 +38,33 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.price {
+    font-weight: 700;
+}
+
+.price--discount {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.price--discount .price__old {
+    font-weight: 600;
+    color: inherit;
+    opacity: 0.65;
+}
+
+.price--discount .price__old s {
+    text-decoration-thickness: 2px;
+    text-decoration-color: currentColor;
+}
+
+.price--discount .price__new {
+    color: var(--color-secondary);
+    font-weight: 800;
+}
+
 img,
 iframe {
     max-width: 100%;
