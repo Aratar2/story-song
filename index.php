@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $formData = array_fill_keys(array_keys($formData), '');
                 session_write_close();
                 $redirectUrl = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-                header('Location: ' . $redirectUrl);
+                header('Location: ' . $redirectUrl . '#request');
                 exit;
             }
         } else {
@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="#testimonials">Отзывы</a>
             <a href="#faq">FAQ</a>
         </nav>
-        <a class="button button--ghost" href="#request">Оставить заявку</a>
+        <a class="button button--ghost" href="#order">Оставить заявку</a>
     </div>
 </header>
 
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Расскажите мне о человеке, ради которого готовите праздник. Я напишу текст, подберу музыку и голос, чтобы за 1–3 дня вы получили готовый трек за <span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span>. Юбилей родителей, годовщина отношений или признание другу — песня сохранит ваши чувства навсегда.</p>
             <div class="hero__cta">
                 <div class="hero__buttons">
-                    <a class="button button--primary" href="#request">Заказать песню</a>
+                    <a class="button button--primary" href="#order">Заказать песню</a>
                     <a class="button button--contrast" href="#stories">Послушать примеры</a>
                 </div>
                 <ul class="hero__badges" aria-label="Преимущества сервиса">
@@ -375,7 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <section class="section section--accent" id="request">
+    <section class="section section--accent">
         <div class="container">
             <div class="request">
                 <div class="request__intro">
@@ -387,7 +387,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <li>Присылаю демо, собираю комментарии и довожу финальный мастер.</li>
                     </ul>
                 </div>
-                <form class="request__form" method="post" action="#request">
+                <form class="request__form" id="order" method="post" action="#request">
+                    <span id="request" class="request__status-anchor" aria-hidden="true"></span>
                     <?php if ($successMessage): ?>
                     <div class="alert alert--success"><?php echo htmlspecialchars($successMessage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
                     <?php endif; ?>
@@ -466,7 +467,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2>Пора удивлять тех, кого вы любите</h2>
                 <p>Поделитесь историей сейчас — и уже через 1–3 дня получите первое демо будущего хита. Я помогу подобрать слова и сделаю всё, чтобы песня прозвучала в нужный момент.</p>
             </div>
-            <a class="button button--primary" href="#request">Оставить заявку</a>
+            <a class="button button--primary" href="#order">Оставить заявку</a>
         </div>
     </section>
 </main>
@@ -480,7 +481,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="footer__links">
             <a href="#stories">Примеры</a>
             <a href="#process">Как работаем</a>
-            <a href="#request">Заказать песню</a>
+            <a href="#order">Заказать песню</a>
         </div>
         <div class="footer__contacts">
             <span>Напишите мне:</span>
@@ -494,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button class="floating-cta__close" type="button" aria-label="Скрыть предложение">×</button>
     <div class="floating-cta__content">
         <span>Есть история? Сделаю песню за 1–3 дня.</span>
-        <a class="button button--primary" href="#request">Оставить заявку</a>
+        <a class="button button--primary" href="#order">Оставить заявку</a>
     </div>
 </div>
 <script>

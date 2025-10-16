@@ -19,6 +19,7 @@
     --shadow-soft: 0 15px 35px rgba(15, 5, 38, 0.08);
     --font-base: 'Manrope', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     --font-display: 'Playfair Display', 'Georgia', serif;
+    --header-offset: clamp(104px, 18vh, 144px);
 }
 
 * {
@@ -639,6 +640,14 @@ blockquote cite {
     box-shadow: var(--shadow-card);
     display: grid;
     gap: 18px;
+    scroll-margin-top: var(--header-offset);
+}
+
+.request__status-anchor {
+    display: block;
+    height: 0;
+    margin: 0;
+    scroll-margin-top: var(--header-offset);
 }
 
 label span {
