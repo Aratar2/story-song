@@ -25,6 +25,7 @@
    - `DOMAIN` — ваш домен (например, `music.example.com`).
    - `EMAIL` — контактная почта для уведомлений Let's Encrypt.
    - При необходимости добавьте токены `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`, чтобы форма отправляла заявки в Telegram.
+   - Укажите `IPDATA_API_KEY`, чтобы геолокация IP работала через сервис [ipdata.co](https://ipdata.co/).
 
 ### Запуск
 
