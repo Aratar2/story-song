@@ -92,6 +92,18 @@ $pricingConfig = [
     ],
 ];
 
+const IP_COUNTRY_CACHE_DIR = __DIR__ . '/storage/cache/ip-country';
+const IP_COUNTRY_CACHE_TTL = 604800; // 7 days
+
+function ensureDirectoryExists(string $path): bool
+{
+    if (is_dir($path)) {
+        return true;
+    }
+
+    return mkdir($path, 0775, true);
+}
+
 function formatPriceValue(array $settings, string $amountKey = 'amount'): ?string
 {
     if (!isset($settings[$amountKey]) || !is_numeric($settings[$amountKey])) {
@@ -181,6 +193,95 @@ function getClientIpAddress(array $server): ?string
     return null;
 }
 
+function isLikelyBotRequest(array $server): bool
+{
+    $userAgent = $server['HTTP_USER_AGENT'] ?? '';
+
+    if ($userAgent === '') {
+        return true;
+    }
+
+    $botSignatures = [
+        'bot',
+        'crawl',
+        'spider',
+        'slurp',
+        'mediapartners-google',
+        'bingpreview',
+        'pingdom',
+        'monitor',
+        'curl',
+        'wget',
+        'httpclient',
+        'python-requests',
+    ];
+
+    $normalized = strtolower($userAgent);
+
+    foreach ($botSignatures as $signature) {
+        if (strpos($normalized, $signature) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function getCacheFilePathForIp(string $ip): string
+{
+    return IP_COUNTRY_CACHE_DIR . '/' . sha1($ip) . '.json';
+}
+
+function readCountryCodeFromCache(string $ip): ?string
+{
+    $filePath = getCacheFilePathForIp($ip);
+
+    if (!is_file($filePath)) {
+        return null;
+    }
+
+    $payload = @file_get_contents($filePath);
+
+    if ($payload === false || $payload === '') {
+        return null;
+    }
+
+    $data = json_decode($payload, true);
+
+    if (!is_array($data)) {
+        return null;
+    }
+
+    $expiresAt = isset($data['expires_at']) ? (int) $data['expires_at'] : 0;
+    if ($expiresAt > 0 && $expiresAt < time()) {
+        @unlink($filePath);
+        return null;
+    }
+
+    $country = $data['country'] ?? null;
+
+    return is_string($country) ? $country : null;
+}
+
+function cacheCountryCodeForIp(string $ip, string $countryCode): void
+{
+    if (!ensureDirectoryExists(IP_COUNTRY_CACHE_DIR)) {
+        return;
+    }
+
+    $filePath = getCacheFilePathForIp($ip);
+    $payload = json_encode([
+        'country' => $countryCode,
+        'expires_at' => time() + IP_COUNTRY_CACHE_TTL,
+    ]);
+
+    if ($payload === false) {
+        return;
+    }
+
+    @file_put_contents($filePath, $payload, LOCK_EX);
+}
+
 function lookupCountryCodeByIp(string $ip): ?string
 {
     if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) &&
@@ -214,8 +315,6 @@ function lookupCountryCodeByIp(string $ip): ?string
         return null;
     }
 
-    error_log(sprintf('IP lookup response: ip=%s response=%s', $ip, $response));
-
     $data = json_decode($response, true);
 
     if (!is_array($data)) {
@@ -237,23 +336,53 @@ function lookupCountryCodeByIp(string $ip): ?string
     return $country;
 }
 
-$defaultPricingKey = 'default';
-$pricingKey = $_SESSION['pricing_country_code'] ?? null;
+function determinePricingCountry(array $server, array $pricingConfig, string $defaultKey): string
+{
+    $sessionCountry = $_SESSION['pricing_country_code'] ?? null;
 
-if (!is_string($pricingKey) || $pricingKey === '') {
-    $pricingKey = $defaultPricingKey;
-
-    $clientIp = getClientIpAddress($_SERVER);
-    if ($clientIp !== null) {
-        $countryCode = lookupCountryCodeByIp($clientIp);
-
-        if ($countryCode !== null && isset($pricingConfig[$countryCode])) {
-            $pricingKey = $countryCode;
-        }
+    if (is_string($sessionCountry) && isset($pricingConfig[$sessionCountry])) {
+        return $sessionCountry;
     }
 
-    $_SESSION['pricing_country_code'] = $pricingKey;
+    if (isLikelyBotRequest($server)) {
+        return $defaultKey;
+    }
+
+    $clientIp = getClientIpAddress($server);
+
+    if ($clientIp === null) {
+        return $defaultKey;
+    }
+
+    $cachedCountry = readCountryCodeFromCache($clientIp);
+    if (is_string($cachedCountry)) {
+        if (isset($pricingConfig[$cachedCountry])) {
+            $_SESSION['pricing_country_code'] = $cachedCountry;
+            return $cachedCountry;
+        }
+
+        return $defaultKey;
+    }
+
+    $countryCode = lookupCountryCodeByIp($clientIp);
+
+    if ($countryCode !== null) {
+        if (!isset($pricingConfig[$countryCode])) {
+            cacheCountryCodeForIp($clientIp, $countryCode);
+            return $defaultKey;
+        }
+
+        cacheCountryCodeForIp($clientIp, $countryCode);
+        $_SESSION['pricing_country_code'] = $countryCode;
+
+        return $countryCode;
+    }
+
+    return $defaultKey;
 }
+
+$defaultPricingKey = 'default';
+$pricingKey = determinePricingCountry($_SERVER, $pricingConfig, $defaultPricingKey);
 
 $pricing = $pricingConfig[$pricingKey] ?? $pricingConfig[$defaultPricingKey];
 $currentPrice = formatPriceValue($pricing);
