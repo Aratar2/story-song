@@ -222,12 +222,8 @@ function lookupCountryCodeByIp(string $ip): ?string
     ) {
         return null;
     }
-
-    $serviceBaseUrl = getenv('GEOIP_SERVICE_BASE_URL');
-
-    if (!is_string($serviceBaseUrl) || $serviceBaseUrl === '') {
-        $serviceBaseUrl = 'http://geoip/country';
-    }
+    
+    $serviceBaseUrl = 'http://geoip/country';
 
     $endpoint = sprintf(
         '%s?ip=%s',
