@@ -199,8 +199,11 @@ function lookupCountryCodeByIp(string $ip): ?string
     $response = @file_get_contents($endpoint, false, $context);
 
     if ($response === false) {
+        error_log(sprintf('IP lookup failed: ip=%s response=%s', $ip, 'false'));
         return null;
     }
+
+    error_log(sprintf('IP lookup response: ip=%s response=%s', $ip, $response));
 
     $data = json_decode($response, true);
 
