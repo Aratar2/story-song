@@ -20,4 +20,4 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
             git pull
-            docker compose up -d --build php nginx
+            docker compose up -d --build php nginx geoip
