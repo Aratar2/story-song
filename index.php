@@ -59,6 +59,193 @@ $steps = [
     ],
 ];
 
+$pricingConfig = [
+    'default' => [
+        'amount' => 10,
+        'old_amount' => 20,
+        'currency_symbol' => '€',
+        'symbol_position' => 'suffix',
+        'symbol_separator' => ' ',
+        'decimals' => 0,
+        'decimal_separator' => ',',
+        'thousands_separator' => '',
+    ],
+    'RU' => [
+        'amount' => 1000,
+        'old_amount' => 2000,
+        'currency_symbol' => '₽',
+        'symbol_position' => 'suffix',
+        'symbol_separator' => ' ',
+        'decimals' => 0,
+        'decimal_separator' => ',',
+        'thousands_separator' => '',
+    ],
+    'KZ' => [
+        'amount' => 7000,
+        'old_amount' => 14000,
+        'currency_symbol' => '₸',
+        'symbol_position' => 'suffix',
+        'symbol_separator' => ' ',
+        'decimals' => 0,
+        'decimal_separator' => ',',
+        'thousands_separator' => ' ',
+    ],
+];
+
+function formatPriceValue(array $settings, string $amountKey = 'amount'): ?string
+{
+    if (!isset($settings[$amountKey]) || !is_numeric($settings[$amountKey])) {
+        return null;
+    }
+
+    $amount = (float) $settings[$amountKey];
+    $decimals = $settings['decimals'] ?? 0;
+    $decimalSeparator = $settings['decimal_separator'] ?? ',';
+    $thousandsSeparator = $settings['thousands_separator'] ?? ' ';
+    $formattedAmount = number_format($amount, $decimals, $decimalSeparator, $thousandsSeparator);
+
+    $symbol = $settings['currency_symbol'] ?? '';
+    if ($symbol === '') {
+        return $formattedAmount;
+    }
+
+    $position = strtolower($settings['symbol_position'] ?? 'suffix');
+    $separator = $settings['symbol_separator'] ?? ($position === 'suffix' ? ' ' : '');
+
+    if ($position === 'prefix') {
+        return $symbol . $separator . $formattedAmount;
+    }
+
+    return $formattedAmount . $separator . $symbol;
+}
+
+function renderPriceMarkup(?string $currentPrice, ?string $oldPrice = null, string $containerTag = 'span', string $baseClass = 'price'): string
+{
+    if ($currentPrice === null) {
+        return '';
+    }
+
+    if (!preg_match('/^[a-z]+$/i', $containerTag)) {
+        $containerTag = 'span';
+    }
+
+    $classList = trim($baseClass . ($oldPrice !== null ? ' ' . $baseClass . '--discount' : ''));
+    $currentHtml = htmlspecialchars($currentPrice, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    if ($oldPrice !== null) {
+        $oldHtml = htmlspecialchars($oldPrice, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        return sprintf(
+            '<%1$s class="%2$s"><span class="price__old"><s>%3$s</s></span> <span class="price__new">%4$s</span></%1$s>',
+            $containerTag,
+            $classList,
+            $oldHtml,
+            $currentHtml
+        );
+    }
+
+    return sprintf('<%1$s class="%2$s">%3$s</%1$s>', $containerTag, $classList, $currentHtml);
+}
+
+function getClientIpAddress(array $server): ?string
+{
+    $candidates = [];
+
+    if (!empty($server['HTTP_CLIENT_IP'])) {
+        $candidates[] = $server['HTTP_CLIENT_IP'];
+    }
+
+    if (!empty($server['HTTP_X_FORWARDED_FOR'])) {
+        $forwardedFor = explode(',', (string) $server['HTTP_X_FORWARDED_FOR']);
+        foreach ($forwardedFor as $ip) {
+            $candidates[] = trim($ip);
+        }
+    }
+
+    if (!empty($server['REMOTE_ADDR'])) {
+        $candidates[] = $server['REMOTE_ADDR'];
+    }
+
+    foreach ($candidates as $ip) {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return $ip;
+        }
+    }
+
+    foreach ($candidates as $ip) {
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+    }
+
+    return null;
+}
+
+function lookupCountryCodeByIp(string $ip): ?string
+{
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) &&
+        !filter_var($ip, FILTER_VALIDATE_IP)
+    ) {
+        return null;
+    }
+
+    $endpoint = 'https://ipapi.co/' . rawurlencode($ip) . '/json/';
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 1.5,
+        ],
+    ]);
+
+    $response = @file_get_contents($endpoint, false, $context);
+
+    if ($response === false) {
+        return null;
+    }
+
+    $data = json_decode($response, true);
+
+    if (!is_array($data)) {
+        return null;
+    }
+
+    $country = $data['country'] ?? $data['country_code'] ?? $data['countryCode'] ?? null;
+
+    if (!is_string($country) || $country === '') {
+        return null;
+    }
+
+    $country = strtoupper($country);
+
+    if (strlen($country) !== 2) {
+        return null;
+    }
+
+    return $country;
+}
+
+$defaultPricingKey = 'default';
+$pricingKey = $_SESSION['pricing_country_code'] ?? null;
+
+if (!is_string($pricingKey) || $pricingKey === '') {
+    $pricingKey = $defaultPricingKey;
+
+    $clientIp = getClientIpAddress($_SERVER);
+    if ($clientIp !== null) {
+        $countryCode = lookupCountryCodeByIp($clientIp);
+
+        if ($countryCode !== null && isset($pricingConfig[$countryCode])) {
+            $pricingKey = $countryCode;
+        }
+    }
+
+    $_SESSION['pricing_country_code'] = $pricingKey;
+}
+
+$pricing = $pricingConfig[$pricingKey] ?? $pricingConfig[$defaultPricingKey];
+$currentPrice = formatPriceValue($pricing);
+$oldPrice = formatPriceValue($pricing, 'old_amount');
+$priceForMeta = $currentPrice . ($oldPrice !== null ? ' вместо ' . $oldPrice : '');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($formData as $field => $_) {
         $formData[$field] = trim($_POST[$field] ?? '');
@@ -138,19 +325,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Песня на заказ для близких — 1000 ₽ (10 €) и готово за 1–3 дня</title>
-    <meta name="description" content="Пишу персональные песни на заказ для юбилеев, годовщин, признаний и семейных праздников. Скидка 50%: цена 1000 ₽ (10 €) вместо 2000 ₽ (20 €), первые демо в течение 1–3 дней." />
+    <title>Песня на заказ для близких — <?php echo htmlspecialchars($currentPrice ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> и готово за 1–3 дня</title>
+    <meta name="description" content="Пишу персональные песни на заказ для юбилеев, годовщин, признаний и семейных праздников. Скидка 50%: цена <?php echo htmlspecialchars($priceForMeta, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>, первые демо в течение 1–3 дней." />
     <meta name="keywords" content="песня на заказ, песня в подарок, музыка на юбилей, песня для любимого, песня для родителей, авторская песня" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://story-song.ru/" />
-    <meta property="og:title" content="Песня на заказ за 1000 ₽ (10 €) — подарок близким" />
-    <meta property="og:description" content="Расскажите историю — я превращу её в песню-сюрприз для юбилея, годовщины или признания. Первое демо пришлю уже через 1–3 дня." />
+    <meta property="og:title" content="Песня на заказ за <?php echo htmlspecialchars($currentPrice ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> — подарок близким" />
+    <meta property="og:description" content="Расскажите историю — я превращу её в песню-сюрприз для юбилея, годовщины или признания. Первое демо пришлю уже через 1–3 дня. Скидка 50%: <?php echo htmlspecialchars($priceForMeta, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://story-song.ru/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Песня на заказ за 1000 ₽ (10 €)" />
-    <meta name="twitter:description" content="Индивидуальные песни-сюрпризы для родных и друзей. Личное сопровождение и первые демо в течение 1–3 дней." />
+    <meta name="twitter:title" content="Песня на заказ за <?php echo htmlspecialchars($currentPrice ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" />
+    <meta name="twitter:description" content="Индивидуальные песни-сюрпризы для родных и друзей. Личное сопровождение и первые демо в течение 1–3 дней. Скидка 50%: <?php echo htmlspecialchars($priceForMeta, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80" />
     <link rel="stylesheet" href="assets/styles.css" />
     <!-- Meta Pixel Code -->
@@ -213,7 +400,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
         <div class="hero__text">
             <span class="hero__eyebrow">Подарок, который слышно сердцем</span>
             <h1>Персональные песни-сюрпризы для ваших близких</h1>
-            <p>Расскажите мне о человеке, ради которого готовите праздник. Я напишу текст, подберу музыку и голос, чтобы за 1–3 дня вы получили готовый трек за <span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span>. Юбилей родителей, годовщина отношений или признание другу — песня сохранит ваши чувства навсегда.</p>
+            <p>Расскажите мне о человеке, ради которого готовите праздник. Я напишу текст, подберу музыку и голос, чтобы за 1–3 дня вы получили готовый трек за <?php echo renderPriceMarkup($currentPrice, $oldPrice); ?>. Юбилей родителей, годовщина отношений или признание другу — песня сохранит ваши чувства навсегда.</p>
             <div class="hero__cta">
                 <div class="hero__buttons">
                     <a class="button button--primary" href="#order">Заказать песню</a>
@@ -221,7 +408,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                 </div>
                 <ul class="hero__badges" aria-label="Преимущества сервиса">
                     <li class="badge">⏱️ Первое демо за 1–3 дня</li>
-                    <li class="badge">💸 Скидка 50% — <span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span></li>
+                    <li class="badge">💸 Скидка 50% — <?php echo renderPriceMarkup($currentPrice, $oldPrice); ?></li>
                     <li class="badge">💬 Помогаю, даже если не знаете, с чего начать</li>
                 </ul>
             </div>
@@ -243,7 +430,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
             <span>первое демо после вашей истории</span>
         </div>
         <div class="stat">
-            <strong class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></strong>
+            <?php echo renderPriceMarkup($currentPrice, $oldPrice, 'strong'); ?>
             <span>фиксированная стоимость песни</span>
         </div>
         <div class="stat">
@@ -287,7 +474,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
         <div class="container offer">
             <div class="offer__content">
                 <h2>Прозрачные условия заказа</h2>
-                <p class="section__lead">Фиксированная стоимость <span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span> включает текст, музыку, вокал и финальный мастер. Никаких скрытых платежей — рассказываете историю, а я делаю остальное.</p>
+                <p class="section__lead">Фиксированная стоимость <?php echo renderPriceMarkup($currentPrice, $oldPrice); ?> включает текст, музыку, вокал и финальный мастер. Никаких скрытых платежей — рассказываете историю, а я делаю остальное.</p>
                 <ul class="offer__list">
                     <li>Помогаю сформулировать мысли, если сложно начать.</li>
                     <li>Присылаю демо в течение 1–3 дней и учитываю пожелания по правкам.</li>
@@ -295,7 +482,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                 </ul>
             </div>
             <div class="offer__details" aria-label="Ключевые условия заказа песни">
-                <div class="offer__tag"><span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span></div>
+                <div class="offer__tag"><?php echo renderPriceMarkup($currentPrice, $oldPrice); ?></div>
                 <div class="offer__tag">1–3 дня до первого демо</div>
                 <div class="offer__note">Оплата после подтверждения концепции.</div>
             </div>
@@ -406,7 +593,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                     <p>Заполните короткую форму — я свяжусь в Telegram или WhatsApp, чтобы обсудить детали. Можно прикрепить ссылки на фото, видео и подсказать, какие моменты хочется услышать в песне.</p>
                     <ul class="request__list">
                         <li>Отвечаю в течение рабочего дня.</li>
-                        <li>Стоимость фиксирована — <span class="price price--discount"><span class="price__old"><s>2000 ₽ (20 €)</s></span> <span class="price__new">1000 ₽ (10 €)</span></span>, оплата после подтверждения концепции.</li>
+                        <li>Стоимость фиксирована — <?php echo renderPriceMarkup($currentPrice, $oldPrice); ?>, оплата после подтверждения концепции.</li>
                         <li>Присылаю демо, собираю комментарии и довожу финальный мастер.</li>
                     </ul>
                 </div>
