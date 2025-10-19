@@ -17,7 +17,7 @@ if [[ -z "${DOMAIN:-}" || -z "${EMAIL:-}" ]]; then
 fi
 
 echo "[deploy] Building and starting php + nginx containers..."
-docker compose up -d --build php nginx
+docker compose up -d --build php nginx geoip
 
 check_certificate() {
   docker compose run --rm --entrypoint /bin/sh certbot -c "test -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
