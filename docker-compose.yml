@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     ports:
     - "8044:80"
+    networks:
+      - web
   php:
     build:
       context: .
