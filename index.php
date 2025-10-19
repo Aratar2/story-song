@@ -223,8 +223,8 @@ function lookupCountryCodeByIp(string $ip): ?string
         return null;
     }
     
-    $serviceBaseUrl = 'http://story-song.gotovka-vkusno.ru:8044/country';
-
+    $serviceBaseUrl = 'http://geoip/country';
+    
     $endpoint = sprintf(
         '%s?ip=%s',
         rtrim($serviceBaseUrl, '/'),
