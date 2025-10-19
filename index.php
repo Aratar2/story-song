@@ -290,17 +290,16 @@ function lookupCountryCodeByIp(string $ip): ?string
         return null;
     }
 
-    $apiKey = getenv('IPDATA_API_KEY');
+    $serviceBaseUrl = getenv('GEOIP_SERVICE_BASE_URL');
 
-    if (!is_string($apiKey) || $apiKey === '') {
-        error_log('IP lookup skipped: missing IPDATA_API_KEY');
-        return null;
+    if (!is_string($serviceBaseUrl) || $serviceBaseUrl === '') {
+        $serviceBaseUrl = 'http://geoip/country';
     }
 
     $endpoint = sprintf(
-        'https://api.ipdata.co/%s?api-key=%s',
-        rawurlencode($ip),
-        urlencode($apiKey)
+        '%s?ip=%s',
+        rtrim($serviceBaseUrl, '/'),
+        rawurlencode($ip)
     );
     $context = stream_context_create([
         'http' => [
@@ -321,7 +320,17 @@ function lookupCountryCodeByIp(string $ip): ?string
         return null;
     }
 
-    $country = $data['country'] ?? $data['country_code'] ?? $data['countryCode'] ?? null;
+    $country = null;
+
+    if (isset($data['data']['iso_code']) && is_string($data['data']['iso_code'])) {
+        $country = $data['data']['iso_code'];
+    } elseif (isset($data['country']) && is_string($data['country'])) {
+        $country = $data['country'];
+    } elseif (isset($data['country_code']) && is_string($data['country_code'])) {
+        $country = $data['country_code'];
+    } elseif (isset($data['countryCode']) && is_string($data['countryCode'])) {
+        $country = $data['countryCode'];
+    }
 
     if (!is_string($country) || $country === '') {
         return null;
