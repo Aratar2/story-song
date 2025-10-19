@@ -1,4 +1,11 @@
 services:
+  geoip:
+    build:
+      context: ./
+      dockerfile: docker/common/geoIp/Dockerfile
+    restart: unless-stopped
+    ports:
+    - "8044:80"
   php:
     build:
       context: .
