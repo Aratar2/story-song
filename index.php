@@ -230,18 +230,30 @@ function lookupCountryCodeByIp(string $ip): ?string
         rtrim($serviceBaseUrl, '/'),
         rawurlencode($ip)
     );
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => 1.5,
-        ],
+
+    $ch = curl_init($endpoint);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FAILONERROR => false,
+        CURLOPT_TIMEOUT => 2,
     ]);
 
-    $response = @file_get_contents($endpoint, false, $context);
+    $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if ($response === false) {
-        error_log(sprintf('IP lookup failed: ip=%s response=%s', $ip, 'false'));
+        error_log(sprintf('IP lookup failed: ip=%s error=%s', $ip, curl_error($ch)));
+        curl_close($ch);
         return null;
     }
+
+    if ($httpStatus >= 400) {
+        error_log(sprintf('IP lookup failed: ip=%s http_status=%s', $ip, $httpStatus));
+        curl_close($ch);
+        return null;
+    }
+
+    curl_close($ch);
 
     $data = json_decode($response, true);
 
