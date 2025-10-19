@@ -189,7 +189,18 @@ function lookupCountryCodeByIp(string $ip): ?string
         return null;
     }
 
-    $endpoint = 'https://ipapi.co/' . rawurlencode($ip) . '/json/';
+    $apiKey = getenv('IPDATA_API_KEY');
+
+    if (!is_string($apiKey) || $apiKey === '') {
+        error_log('IP lookup skipped: missing IPDATA_API_KEY');
+        return null;
+    }
+
+    $endpoint = sprintf(
+        'https://api.ipdata.co/%s?api-key=%s',
+        rawurlencode($ip),
+        urlencode($apiKey)
+    );
     $context = stream_context_create([
         'http' => [
             'timeout' => 1.5,
