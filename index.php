@@ -61,9 +61,9 @@ $steps = [
 
 $pricingConfig = [
     'default' => [
-        'amount' => 10,
-        'old_amount' => 20,
-        'currency_symbol' => '€',
+        'amount' => 1000,
+        'old_amount' => 2000,
+        'currency_symbol' => '₽',
         'symbol_position' => 'suffix',
         'symbol_separator' => ' ',
         'decimals' => 0,
