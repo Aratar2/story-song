@@ -42,19 +42,22 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% set discountPercent = pricing.discountPercent ?? null %}
+    {% set discountText = discountPercent is not null ? 'Скидка ' ~ discountPercent ~ '%' : '' %}
+    {% set discountTextWithColon = discountText ? discountText ~ ': ' : '' %}
     <title>Песня на заказ для близких — {{ pricing.currentPrice ?? '' }} и готово за 1–3 дня</title>
-    <meta name="description" content="Пишу персональные песни на заказ для юбилеев, годовщин, признаний и семейных праздников. Скидка 50%: цена {{ pricing.priceForMeta ?? '' }}, первые демо в течение 1–3 дней." />
+    <meta name="description" content="Пишу персональные песни на заказ для юбилеев, годовщин, признаний и семейных праздников. {{ discountTextWithColon }}цена {{ pricing.priceForMeta ?? '' }}, первые демо в течение 1–3 дней." />
     <meta name="keywords" content="песня на заказ, песня в подарок, музыка на юбилей, песня для любимого, песня для родителей, авторская песня" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://story-song.ru/" />
     <meta property="og:title" content="Песня на заказ за {{ pricing.currentPrice ?? '' }} — подарок близким" />
-    <meta property="og:description" content="Расскажите историю — я превращу её в песню-сюрприз для юбилея, годовщины или признания. Первое демо пришлю уже через 1–3 дня. Скидка 50%: {{ pricing.priceForMeta ?? '' }}." />
+    <meta property="og:description" content="Расскажите историю — я превращу её в песню-сюрприз для юбилея, годовщины или признания. Первое демо пришлю уже через 1–3 дня. {{ discountTextWithColon }}{{ pricing.priceForMeta ?? '' }}." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://story-song.ru/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Песня на заказ за {{ pricing.currentPrice ?? '' }}" />
-    <meta name="twitter:description" content="Индивидуальные песни-сюрпризы для родных и друзей. Личное сопровождение и первые демо в течение 1–3 дней. Скидка 50%: {{ pricing.priceForMeta ?? '' }}." />
+    <meta name="twitter:description" content="Индивидуальные песни-сюрпризы для родных и друзей. Личное сопровождение и первые демо в течение 1–3 дней. {{ discountTextWithColon }}{{ pricing.priceForMeta ?? '' }}." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80" />
     <link rel="stylesheet" href="assets/styles.css" />
     <!-- Meta Pixel Code -->
@@ -125,7 +128,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                 </div>
                 <ul class="hero__badges" aria-label="Преимущества сервиса">
                     <li class="badge">⏱️ Первое демо за 1–3 дня</li>
-                    <li class="badge">💸 Скидка 50% — {{ pricing.markup.default|raw }}</li>
+                    <li class="badge">💸 {{ discountText }} — {{ pricing.markup.default|raw }}</li>
                     <li class="badge">💬 Помогаю, даже если не знаете, с чего начать</li>
                 </ul>
             </div>
