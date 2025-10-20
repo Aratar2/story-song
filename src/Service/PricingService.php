@@ -36,6 +36,7 @@ class PricingService
         $currentPrice = $this->formatPriceValue($pricing);
         $oldPrice = $this->formatPriceValue($pricing, 'old_amount');
         $priceForMeta = $currentPrice;
+        $discountPercent = $this->calculateDiscountPercent($pricing);
 
         if ($oldPrice !== null) {
             $priceForMeta .= ' вместо ' . $oldPrice;
@@ -47,11 +48,45 @@ class PricingService
             'currentPrice' => $currentPrice,
             'oldPrice' => $oldPrice,
             'priceForMeta' => $priceForMeta,
+            'discountPercent' => $discountPercent,
             'markup' => [
                 'default' => $this->renderPriceMarkup($currentPrice, $oldPrice),
                 'strong' => $this->renderPriceMarkup($currentPrice, $oldPrice, 'strong'),
             ],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    private function calculateDiscountPercent(array $settings): ?int
+    {
+        if (!isset($settings['amount'], $settings['old_amount'])) {
+            return null;
+        }
+
+        if (!is_numeric($settings['amount']) || !is_numeric($settings['old_amount'])) {
+            return null;
+        }
+
+        $currentAmount = (float) $settings['amount'];
+        $oldAmount = (float) $settings['old_amount'];
+
+        if ($oldAmount <= 0.0) {
+            return null;
+        }
+
+        $discount = (($oldAmount - $currentAmount) / $oldAmount) * 100.0;
+
+        if (!is_finite($discount)) {
+            return null;
+        }
+
+        if ($discount < 0.0) {
+            $discount = 0.0;
+        }
+
+        return (int) round($discount);
     }
 
     /**
