@@ -700,6 +700,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                     <p>Заполните короткую форму — я свяжусь в Telegram или WhatsApp, чтобы обсудить детали. Можно прикрепить ссылки на фото, видео и подсказать, какие моменты хочется услышать в песне.</p>
                     <ul class="request__list">
                         <li>Отвечаю в течение рабочего дня.</li>
+                        <li>Работаю по России, Казахстану и всему миру — обсудим детали онлайн.</li>
                         <li>Стоимость фиксирована — <?php echo renderPriceMarkup($currentPrice, $oldPrice); ?>, оплата после подтверждения концепции.</li>
                         <li>Присылаю демо, собираю комментарии и довожу финальный мастер.</li>
                     </ul>
@@ -793,7 +794,7 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
     <div class="container footer__content">
         <div>
             <strong>Песни на заказ</strong>
-            <p>Создаю музыку, в которой живут ваши воспоминания. Работаю по всей России и миру.</p>
+            <p>Создаю музыку, в которой живут ваши воспоминания. Работаю по России, Казахстану и всему миру.</p>
         </div>
         <div class="footer__links">
             <a href="#stories">Примеры</a>
