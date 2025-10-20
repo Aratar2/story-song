@@ -2,8 +2,8 @@
 
 return [
     'default' => [
-        'amount' => 1000,
-        'old_amount' => 2000,
+        'amount' => 1500,
+        'old_amount' => 3000,
         'currency_symbol' => '₽',
         'symbol_position' => 'suffix',
         'symbol_separator' => ' ',
@@ -12,8 +12,8 @@ return [
         'thousands_separator' => '',
     ],
     'RU' => [
-        'amount' => 1000,
-        'old_amount' => 2000,
+        'amount' => 1500,
+        'old_amount' => 3000,
         'currency_symbol' => '₽',
         'symbol_position' => 'suffix',
         'symbol_separator' => ' ',
