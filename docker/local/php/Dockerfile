@@ -13,11 +13,6 @@ RUN apt-get update \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY composer.json composer.lock* ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-COPY . /var/www/html
-
-RUN chown -R www-data:www-data /var/www/html
-
-EXPOSE 9000
+CMD ["php-fpm"]

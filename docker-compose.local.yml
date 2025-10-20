@@ -1,0 +1,36 @@
+services:
+  geoip:
+    build:
+      context: .
+      dockerfile: docker/common/geoIp/Dockerfile
+    ports:
+      - "8044:80"
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/local/php/Dockerfile
+    depends_on:
+      - geoip
+    volumes:
+      - ./:/var/www/html
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "php", "-v"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8088:80"
+    volumes:
+      - ./docker/local/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/var/www/html:ro
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: "1"
