@@ -22,8 +22,8 @@ return [
         'thousands_separator' => '',
     ],
     'KZ' => [
-        'amount' => 7000,
-        'old_amount' => 14000,
+        'amount' => 9000,
+        'old_amount' => 18000,
         'currency_symbol' => '₸',
         'symbol_position' => 'suffix',
         'symbol_separator' => ' ',
