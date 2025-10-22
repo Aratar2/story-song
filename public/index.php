@@ -46,7 +46,7 @@ $defaultFormData = [
     'occasion' => '',
     'story' => '',
     'tone' => '',
-    'story_later' => '',
+    'story_later' => '0',
 ];
 
 $redirectToRequest = static function (Request $request, Response $response): Response {
@@ -100,11 +100,13 @@ $app->post('/request', function (Request $request, Response $response) use ($tel
         $formData[$field] = is_string($value) ? trim($value) : '';
     }
 
+    $formData['story_later'] = $formData['story_later'] === '1' ? '1' : '0';
+
     $_SESSION['form_data'] = $formData;
 
     $contact = $formData['contact'];
     $story = $formData['story'];
-    $storyLater = $formData['story_later'] !== '';
+    $storyLater = $formData['story_later'] === '1';
 
     if ($contact === '' || ($story === '' && !$storyLater)) {
         $_SESSION['flash_error'] = 'Пожалуйста, укажите контакт и кратко опишите историю или отметьте, что расскажете её позже.';
