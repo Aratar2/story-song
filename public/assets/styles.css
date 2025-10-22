@@ -665,7 +665,22 @@ label span {
     color: var(--color-text-muted);
 }
 
-.checkbox-field {
+.story-options {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: grid;
+    gap: 16px;
+}
+
+.story-options legend {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+    color: var(--color-text);
+}
+
+.story-option {
     display: flex;
     align-items: flex-start;
     gap: 12px;
@@ -676,34 +691,62 @@ label span {
     cursor: pointer;
 }
 
-.checkbox-field input[type='checkbox'] {
+.story-option:hover,
+.story-option:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 6px 20px rgba(33, 33, 33, 0.08);
+}
+
+.story-option input[type='radio'] {
     width: 22px;
     height: 22px;
     margin: 2px 0 0;
     flex-shrink: 0;
-    border-radius: 6px;
+    border-radius: 50%;
     border: 1px solid var(--color-border);
     padding: 0;
     accent-color: var(--color-primary);
 }
 
-.checkbox-field input[type='checkbox']:focus {
+.story-option input[type='radio']:focus {
     outline: none;
     box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.18);
 }
 
-.checkbox-field span {
+.story-option span {
+    display: block;
     font-weight: 600;
     margin-bottom: 0;
     color: var(--color-text);
 }
 
-.checkbox-field span small {
+.story-option input[type='radio']:checked + span {
+    color: var(--color-primary);
+}
+
+.story-option input[type='radio']:checked + span small {
+    color: var(--color-text);
+}
+
+.story-option span small {
     display: block;
     margin-top: 4px;
     font-size: 0.95rem;
     font-weight: 400;
     color: var(--color-text-muted);
+}
+
+.story-option__details {
+    margin: -4px 0 0;
+    padding: 0 0 0 34px;
+}
+
+.story-option__details label {
+    margin: 0;
+}
+
+.story-option__details[hidden] {
+    display: none;
 }
 
 input,
