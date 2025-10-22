@@ -338,12 +338,19 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                             <option value="Задорно" {{ formData.tone == 'Задорно' ? 'selected' : '' }}>Задорно</option>
                         </select>
                     </label>
-                    {% set storyLaterSelected = formData.story_later == '1' %}
+                    {% set storyLaterValue = formData.story_later|default('1') %}
+                    {% set storyLaterSelected = storyLaterValue == '1' %}
                     <fieldset class="story-options" data-story-toggle>
                         <legend>Как удобнее рассказать историю?</legend>
                         <label class="story-option">
+                            <input type="radio" name="story_later" value="1" {{ storyLaterSelected ? 'checked' : '' }} />
+                            <span>Рассказать историю позже голосовым сообщением в мессенджере
+                                <small>Свяжусь и помогу сформулировать детали после заявки.</small>
+                            </span>
+                        </label>
+                        <label class="story-option">
                             <input type="radio" name="story_later" value="0" {{ storyLaterSelected ? '' : 'checked' }} />
-                            <span>Рассказать историю в заявке
+                            <span>Рассказать историю сейчас
                                 <small>Поделитесь фактами, шутками и именами, чтобы я почувствовал настроение.</small>
                             </span>
                         </label>
@@ -351,15 +358,8 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                             <label>
                                 <span>Расскажите историю</span>
                                 <textarea name="story" rows="6" placeholder="Поделитесь фактами, шутками, именами, чтобы я почувствовал настроение">{{ formData.story }}</textarea>
-                                <small class="form__hint">Если удобнее, выберите вариант ниже — обсудим историю голосом.</small>
                             </label>
                         </div>
-                        <label class="story-option">
-                            <input type="radio" name="story_later" value="1" {{ storyLaterSelected ? 'checked' : '' }} />
-                            <span>Рассказать историю позже голосовым сообщением в мессенджере
-                                <small>Свяжусь и помогу сформулировать детали после заявки.</small>
-                            </span>
-                        </label>
                     </fieldset>
                     <button class="button button--primary" type="submit">Отправить заявку</button>
                     <p class="form__note">Нажимая «Отправить», вы соглашаетесь на обработку данных для связи и подготовки песни.</p>
