@@ -340,7 +340,14 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
                     </label>
                     <label>
                         <span>Расскажите историю</span>
-                        <textarea name="story" rows="6" placeholder="Поделитесь фактами, шутками, именами, чтобы я почувствовал настроение" required>{{ formData.story }}</textarea>
+                        <textarea name="story" rows="6" placeholder="Поделитесь фактами, шутками, именами, чтобы я почувствовал настроение">{{ formData.story }}</textarea>
+                        <small class="form__hint">Если удобнее, пропустите этот шаг и поставьте галочку ниже — обсудим историю голосом.</small>
+                    </label>
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="story_later" value="1" {{ formData.story_later ? 'checked' : '' }} />
+                        <span>Расскажу историю позже голосовым сообщением в мессенджере
+                            <small>Свяжусь и помогу сформулировать детали после заявки.</small>
+                        </span>
                     </label>
                     <button class="button button--primary" type="submit">Отправить заявку</button>
                     <p class="form__note">Нажимая «Отправить», вы соглашаетесь на обработку данных для связи и подготовки песни.</p>
