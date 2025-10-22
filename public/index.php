@@ -46,7 +46,7 @@ $defaultFormData = [
     'occasion' => '',
     'story' => '',
     'tone' => '',
-    'story_later' => '0',
+    'story_later' => '1',
 ];
 
 $redirectToRequest = static function (Request $request, Response $response): Response {
