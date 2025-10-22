@@ -46,6 +46,7 @@ $defaultFormData = [
     'occasion' => '',
     'story' => '',
     'tone' => '',
+    'story_later' => '',
 ];
 
 $redirectToRequest = static function (Request $request, Response $response): Response {
@@ -103,9 +104,10 @@ $app->post('/request', function (Request $request, Response $response) use ($tel
 
     $contact = $formData['contact'];
     $story = $formData['story'];
+    $storyLater = $formData['story_later'] !== '';
 
-    if ($contact === '' || $story === '') {
-        $_SESSION['flash_error'] = 'Пожалуйста, укажите контакт и кратко опишите историю.';
+    if ($contact === '' || ($story === '' && !$storyLater)) {
+        $_SESSION['flash_error'] = 'Пожалуйста, укажите контакт и кратко опишите историю или отметьте, что расскажете её позже.';
 
         return $redirectToRequest($request, $response);
     }
@@ -116,8 +118,16 @@ $app->post('/request', function (Request $request, Response $response) use ($tel
         'Контакт: ' . $formData['contact'],
         'Повод: ' . ($formData['occasion'] !== '' ? $formData['occasion'] : 'не указан'),
         'Настроение: ' . ($formData['tone'] !== '' ? $formData['tone'] : 'не указано'),
-        'История: ' . $formData['story'],
     ];
+
+    if ($story !== '') {
+        $messageLines[] = 'История: ' . $story;
+        if ($storyLater) {
+            $messageLines[] = 'Комментарий: клиент хочет дополнительно рассказать историю голосовым сообщением.';
+        }
+    } else {
+        $messageLines[] = 'История: клиент расскажет голосовым сообщением в мессенджере.';
+    }
 
     $success = $telegramNotifier->sendMessage($messageLines);
 
@@ -127,7 +137,9 @@ $app->post('/request', function (Request $request, Response $response) use ($tel
         return $redirectToRequest($request, $response);
     }
 
-    $_SESSION['flash_success'] = 'Спасибо! История получена — я свяжусь в ближайшее время.';
+    $_SESSION['flash_success'] = $storyLater
+        ? 'Спасибо! Я свяжусь и вы сможете рассказать историю голосовым сообщением.'
+        : 'Спасибо! История получена — я свяжусь в ближайшее время.';
     unset($_SESSION['form_data']);
     session_write_close();
 

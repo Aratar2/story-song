@@ -657,6 +657,55 @@ label span {
     color: var(--color-text);
 }
 
+.form__hint {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    cursor: pointer;
+}
+
+.checkbox-field input[type='checkbox'] {
+    width: 22px;
+    height: 22px;
+    margin: 2px 0 0;
+    flex-shrink: 0;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    padding: 0;
+    accent-color: var(--color-primary);
+}
+
+.checkbox-field input[type='checkbox']:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.18);
+}
+
+.checkbox-field span {
+    font-weight: 600;
+    margin-bottom: 0;
+    color: var(--color-text);
+}
+
+.checkbox-field span small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
 input,
 select,
 textarea {
