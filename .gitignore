@@ -1,2 +1,4 @@
-.env
-vendor/
+/vendor/
+/var/
+public/bundles/
+/.env
