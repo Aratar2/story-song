@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine;
 
-use Doctrine\Common\Cache\Psr6\DoctrineProvider;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -29,7 +28,7 @@ class EntityManagerFactory
         $cache = null;
         if ($cacheDir && !$devMode) {
             $this->ensureDirectory($cacheDir);
-            $cache = DoctrineProvider::wrap(new FilesystemAdapter('doctrine', 0, $cacheDir));
+            $cache = new FilesystemAdapter('doctrine', 0, $cacheDir);
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration($metadataDirs, $devMode, $proxyDir, $cache);
