@@ -14,7 +14,7 @@
         "symfony/password-hasher": "^6.3",
         "symfony/console": "^6.3",
         "doctrine/doctrine-bundle": "^2.11",
-        "doctrine/doctrine-migrations-bundle": "^3.6",
+        "doctrine/doctrine-migrations-bundle": "^3.5",
         "doctrine/migrations": "^3.6",
         "easycorp/easyadmin-bundle": "^4.7",
         "symfony/yaml": "^6.3",
@@ -29,6 +29,9 @@
         "preferred-install": {
             "slim/psr7": "source",
             "*": "dist"
+        },
+        "allow-plugins": {
+            "symfony/runtime": true
         }
     }
 }
