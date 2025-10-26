@@ -16,6 +16,9 @@ if [[ -z "${DOMAIN:-}" || -z "${EMAIL:-}" ]]; then
   exit 1
 fi
 
+echo "[deploy] Preparing SQLite data directory..."
+mkdir -p var/data
+
 echo "[deploy] Installing composer dependencies..."
 docker compose run --rm \
   --entrypoint composer \
