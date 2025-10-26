@@ -62,7 +62,7 @@
   ```bash
   docker compose logs -f nginx
   docker compose logs -f php
-  docker compose logs -f certbot-renew
+   docker compose logs -f certbot-renew
   ```
 
 - Остановить и удалить контейнеры:
@@ -70,6 +70,40 @@
   ```bash
   docker compose down
   ```
+
+## Работа с базой данных и заявками
+
+Приложение использует Doctrine ORM и по умолчанию сохраняет заявки в базу SQLite (`var/data/story-song.sqlite`). Конфигурация собрана в файле `config/doctrine.php`, поэтому при необходимости её легко заменить на PostgreSQL, MySQL или другой драйвер Doctrine через переменную окружения `DATABASE_URL`.
+
+Каталог `var/data` примонтирован в контейнеры как отдельный volume, поэтому файл SQLite хранится на хосте и переживает пересборку образов. Скрипт `deploy.sh` автоматически создаёт каталог при деплое, а для локальной разработки его можно подготовить вручную командой `mkdir -p var/data`.
+
+- Применить миграции (создать или обновить схему базы данных):
+
+  ```bash
+  php bin/console doctrine:migrations:migrate
+  ```
+
+- Отправить несинхронизированные заявки в Telegram (подходит для запуска по cron):
+
+  ```bash
+  php bin/console app:dispatch-song-requests
+  ```
+
+  Команда отмечает успешно отправленные заявки в таблице `telegram_dispatches`, поэтому повторные запуски не дублируют сообщения. Её можно вызвать напрямую из cron, например: `*/5 * * * * cd /path/to/app && php bin/console app:dispatch-song-requests` (не забудьте экспортировать `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`).
+
+  В продакшн- и локальном `docker-compose` добавлен сервис `cron`, который по умолчанию раз в пять минут запускает эту команду внутри отдельного контейнера. Расписание и сами задания задаются в файле `docker/common/cron/app.cron`, который примонтирован в контейнер вместе с кодом. Отредактируйте его и перезапустите сервис, чтобы cron подхватил изменения. Контейнер разделяет volume `var/data`, поэтому использует ту же базу SQLite.
+
+### Админ-панель EasyAdmin
+
+- Админка доступна по адресу `/admin` и защищена аутентификацией.
+- Перед первым входом создайте пользователя с помощью консольной команды:
+
+  ```bash
+  php bin/console app:create-admin --email=you@example.com
+  ```
+
+  Если пароль не передан в параметрах, команда запросит его интерактивно.
+- После логина доступны CRUD-страницы заявок и администраторов. Чтобы выйти, используйте пункт меню «Выйти».
 
 ## Локальный запуск для разработки
 
@@ -81,7 +115,7 @@
    cp .env.example .env
    ```
 
-2. Соберите и запустите локальный стек (GeoIP API + PHP-FPM + Nginx):
+2. Соберите и запустите локальный стек (GeoIP API + PHP-FPM + cron + Nginx):
 
    ```bash
    docker compose -f docker-compose.local.yml up --build
