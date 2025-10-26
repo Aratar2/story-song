@@ -16,13 +16,16 @@ if [[ -z "${DOMAIN:-}" || -z "${EMAIL:-}" ]]; then
   exit 1
 fi
 
+echo "[deploy] Preparing SQLite data directory..."
+mkdir -p var/data
+
 echo "[deploy] Installing composer dependencies..."
 docker compose run --rm \
   --entrypoint composer \
   php install --no-dev --optimize-autoloader --no-interaction
 
-echo "[deploy] Building and starting php + nginx containers..."
-docker compose up -d --build php nginx geoip
+echo "[deploy] Building and starting application containers (php, cron, nginx, geoip)..."
+docker compose up -d --build php cron nginx geoip
 
 check_certificate() {
   docker compose run --rm --entrypoint /bin/sh certbot -c "test -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
