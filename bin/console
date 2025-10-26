@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\AdminKernel;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Dotenv\Dotenv;
+
+define('PROJECT_ROOT', dirname(__DIR__));
+
+require PROJECT_ROOT . '/vendor/autoload.php';
+
+$dotenvPath = PROJECT_ROOT . '/.env';
+if (is_file($dotenvPath)) {
+    (new Dotenv())->bootEnv($dotenvPath);
+}
+
+$env = $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? 'prod';
+$debug = (bool) ($_SERVER['APP_DEBUG'] ?? $_ENV['APP_DEBUG'] ?? ($env !== 'prod'));
+
+$kernel = new AdminKernel($env, $debug);
+$application = new Application($kernel);
+$application->setAutoExit(false);
+
+$input = new ArgvInput();
+$output = new ConsoleOutput();
+
+exit($application->run($input, $output));

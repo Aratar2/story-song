@@ -2,15 +2,20 @@
 
 declare(strict_types=1);
 
+use App\AdminKernel;
+use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Service\LandingContentRepository;
 use App\Service\PricingService;
-use App\Service\TelegramNotifier;
+use App\Service\SongRequestService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteContext;
 use Slim\Views\Twig;
 use Slim\Views\TwigMiddleware;
+use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\ErrorHandler\Debug;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 $projectRoot = dirname(__DIR__);
 $autoloadPath = $projectRoot . '/vendor/autoload.php';
@@ -25,12 +30,42 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+$dotenvPath = $projectRoot . '/.env';
+if (is_file($dotenvPath)) {
+    (new Dotenv())->bootEnv($dotenvPath);
+}
+
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+$requestPath = (string) parse_url($requestUri, PHP_URL_PATH);
+
+if (str_starts_with($requestPath, '/admin')) {
+    $env = $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? 'prod';
+    $debug = (bool) ($_SERVER['APP_DEBUG'] ?? $_ENV['APP_DEBUG'] ?? ($env !== 'prod'));
+
+    if ($debug) {
+        umask(0000);
+
+        Debug::enable();
+    }
+
+    $kernel = new AdminKernel($env, $debug);
+    $request = SymfonyRequest::createFromGlobals();
+    $response = $kernel->handle($request);
+    $response->send();
+    $kernel->terminate($request, $response);
+
+    return;
+}
+
 $pricingConfig = require $projectRoot . '/config/pricing.php';
 $landingConfig = require $projectRoot . '/config/landing.php';
 
 $pricingService = new PricingService($pricingConfig);
 $contentRepository = new LandingContentRepository($landingConfig, $projectRoot);
-$telegramNotifier = new TelegramNotifier(getenv('TELEGRAM_BOT_TOKEN') ?: null, getenv('TELEGRAM_CHAT_ID') ?: null);
+
+$entityManagerFactory = new EntityManagerFactory(require $projectRoot . '/config/doctrine.php');
+$entityManager = $entityManagerFactory->createEntityManager();
+$songRequestService = new SongRequestService($entityManager);
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
@@ -91,7 +126,7 @@ $app->get('/', function (Request $request, Response $response) use ($twig, $pric
     ]);
 })->setName('landing');
 
-$app->post('/request', function (Request $request, Response $response) use ($telegramNotifier, $defaultFormData, $redirectToRequest) {
+$app->post('/request', function (Request $request, Response $response) use ($songRequestService, $defaultFormData, $redirectToRequest) {
     $parsedBody = (array) ($request->getParsedBody() ?? []);
     $formData = $defaultFormData;
 
@@ -114,34 +149,17 @@ $app->post('/request', function (Request $request, Response $response) use ($tel
         return $redirectToRequest($request, $response);
     }
 
-    $messageLines = [
-        'Новая заявка на песню',
-        'Имя: ' . ($formData['name'] !== '' ? $formData['name'] : 'не указано'),
-        'Контакт: ' . $formData['contact'],
-        'Повод: ' . ($formData['occasion'] !== '' ? $formData['occasion'] : 'не указан'),
-        'Настроение: ' . ($formData['tone'] !== '' ? $formData['tone'] : 'не указано'),
-    ];
-
-    if ($story !== '') {
-        $messageLines[] = 'История: ' . $story;
-        if ($storyLater) {
-            $messageLines[] = 'Комментарий: клиент хочет дополнительно рассказать историю голосовым сообщением.';
-        }
-    } else {
-        $messageLines[] = 'История: клиент расскажет голосовым сообщением в мессенджере.';
-    }
-
-    $success = $telegramNotifier->sendMessage($messageLines);
-
-    if (!$success) {
-        $_SESSION['flash_error'] = 'Не получилось отправить заявку. Пожалуйста, напишите мне напрямую в Telegram или WhatsApp.';
+    try {
+        $songRequestService->createFromFormData($formData);
+    } catch (\Throwable $throwable) {
+        $_SESSION['flash_error'] = 'Не получилось сохранить заявку. Пожалуйста, попробуйте ещё раз или напишите напрямую в Telegram или WhatsApp.';
 
         return $redirectToRequest($request, $response);
     }
 
     $_SESSION['flash_success'] = $storyLater
-        ? 'Спасибо! Я свяжусь и вы сможете рассказать историю голосовым сообщением.'
-        : 'Спасибо! История получена — я свяжусь в ближайшее время.';
+        ? 'Спасибо! Заявка сохранена. Я свяжусь и вы сможете рассказать историю голосовым сообщением.'
+        : 'Спасибо! Заявка сохранена — я свяжусь в ближайшее время.';
     unset($_SESSION['form_data']);
     session_write_close();
 

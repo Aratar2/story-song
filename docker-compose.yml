@@ -17,6 +17,23 @@ services:
       - .env
     volumes:
       - ./:/var/www/html
+      - ./var/data:/var/www/html/var/data
+    networks:
+      - web
+
+  cron:
+    build:
+      context: .
+      dockerfile: docker/common/cron/Dockerfile
+    image: story-song-cron:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - php
+    volumes:
+      - ./:/var/www/html
+      - ./var/data:/var/www/html/var/data
     networks:
       - web
 
