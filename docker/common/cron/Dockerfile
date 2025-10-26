@@ -9,7 +9,8 @@ RUN apt-get update \
         git \
         unzip \
         libzip-dev \
-    && docker-php-ext-install zip \
+        libsqlite3-dev \
+    && docker-php-ext-install zip pdo_sqlite sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

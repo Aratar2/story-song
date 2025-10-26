@@ -38,9 +38,17 @@ class EntityManagerFactory
 
         $databaseUrl = getenv('DATABASE_URL');
         if (is_string($databaseUrl) && $databaseUrl !== '') {
-            $connectionParams = ['url' => $databaseUrl];
-        } elseif (($connectionParams['driver'] ?? null) === 'pdo_sqlite' && isset($connectionParams['path'])) {
+            $resolvedUrl = $this->resolveDatabaseUrl($databaseUrl);
+            if ($resolvedUrl !== null) {
+                $connectionParams = ['url' => $resolvedUrl];
+                $this->prepareSqliteDirectoryFromUrl($resolvedUrl);
+            }
+        }
+
+        if (($connectionParams['driver'] ?? null) === 'pdo_sqlite' && isset($connectionParams['path'])) {
             $this->ensureDirectory(dirname((string) $connectionParams['path']));
+        } elseif (isset($connectionParams['url'])) {
+            $this->prepareSqliteDirectoryFromUrl((string) $connectionParams['url']);
         }
 
         return EntityManager::create($connectionParams, $config);
@@ -51,5 +59,34 @@ class EntityManagerFactory
         if (!is_dir($path)) {
             mkdir($path, 0775, true);
         }
+    }
+
+    private function resolveDatabaseUrl(string $databaseUrl): ?string
+    {
+        if ($databaseUrl === '') {
+            return null;
+        }
+
+        if (!str_contains($databaseUrl, '%kernel.project_dir%')) {
+            return $databaseUrl;
+        }
+
+        $projectDir = dirname(__DIR__, 3);
+
+        return $projectDir !== '' ? str_replace('%kernel.project_dir%', $projectDir, $databaseUrl) : null;
+    }
+
+    private function prepareSqliteDirectoryFromUrl(string $url): void
+    {
+        if (!str_starts_with($url, 'sqlite:')) {
+            return;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+        if (!is_string($path) || $path === '' || $path === ':memory:') {
+            return;
+        }
+
+        $this->ensureDirectory(dirname($path));
     }
 }
